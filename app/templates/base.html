@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banco de Talentos RH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="flex h-screen overflow-hidden">
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between hidden md:flex">
+            <div>
+                <div class="h-16 flex items-center px-6 border-b border-slate-100">
+                    <span class="text-2xl mr-2">🏦</span>
+                    <span class="font-bold text-lg text-slate-800">Talentos RH</span>
+                </div>
+                <nav class="mt-6 px-4 space-y-1">
+                    <a href="/dashboard"
+                        class="flex items-center px-4 py-3 text-slate-600 rounded-lg hover:bg-slate-50 hover:text-blue-600 transition-colors group">
+                        <i class="ph ph-chart-line-up text-xl mr-3"></i>
+                        <span class="font-medium">Dashboard</span>
+                    </a>
+                    <a href="/"
+                        class="flex items-center px-4 py-3 text-slate-600 rounded-lg hover:bg-slate-50 hover:text-blue-600 transition-colors group">
+                        <i class="ph ph-users text-xl mr-3"></i>
+                        <span class="font-medium">Candidatos</span>
+                    </a>
+                    <a href="/jobs"
+                        class="flex items-center px-4 py-3 text-slate-600 rounded-lg hover:bg-slate-50 hover:text-blue-600 transition-colors group">
+                        <i class="ph ph-briefcase text-xl mr-3"></i>
+                        <span class="font-medium">Vagas</span>
+                    </a>
+                    <!-- <a href="#"
+                        class="flex items-center px-4 py-3 text-slate-600 rounded-lg hover:bg-slate-50 hover:text-blue-600 transition-colors group">
+                        <i class="ph ph-chart-bar text-xl mr-3"></i>
+                        <span class="font-medium">Relatórios</span>
+                    </a> -->
+                </nav>
+            </div>
+            <div class="p-4 border-t border-slate-100">
+                <a href="#" class="flex items-center px-4 py-2 text-sm text-slate-500 hover:text-slate-700">
+                    <i class="ph ph-gear text-lg mr-2"></i> Configurações
+                </a>
+            </div>
+        </aside>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8">
+                <div class="md:hidden">
+                    <button class="text-slate-500"><i class="ph ph-list text-2xl"></i></button>
+                </div>
+                <div class="flex-1"></div>
+                <div class="flex items-center gap-4">
+                    <button class="p-2 text-slate-400 hover:text-blue-600 transition">
+                        <i class="ph ph-bell text-xl"></i>
+                    </button>
+                    <div
+                        class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200">
+                        RH
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-8">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="fixed inset-0 z-[60] hidden overflow-y-auto">
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full p-6">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="h-10 w-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center">
+                        <i class="ph ph-warning text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900" id="modalTitle">Confirmar Exclusão</h3>
+                </div>
+                <p class="text-slate-500 mb-6">Esta ação não pode ser desfeita. Deseja continuar?</p>
+                <div class="flex justify-end gap-3">
+                    <button onclick="closeModal()"
+                        class="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-lg">Cancelar</button>
+                    <button id="confirmDeleteBtn"
+                        class="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewModal" class="fixed inset-0 z-[60] hidden overflow-y-auto">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeViewModal()"></div>
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
+                <div class="bg-slate-50 px-6 py-4 border-b flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center">
+                        <i class="ph ph-user-focus mr-2 text-blue-600"></i> Perfil do Candidato
+                    </h3>
+                    <button onclick="closeViewModal()" class="text-slate-400 hover:text-slate-600"><i
+                            class="ph ph-x text-2xl"></i></button>
+                </div>
+                <div class="p-6" id="viewModalContent"></div>
+                <div class="bg-slate-50 px-6 py-4 border-t flex justify-end">
+                    <button onclick="closeViewModal()"
+                        class="px-4 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-700 hover:bg-slate-50 transition">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDeleteId = null;
+        let currentDeleteType = '';
+
+        // Executar após o carregamento do DOM para evitar erro de "null"
+        document.addEventListener('DOMContentLoaded', () => {
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', async () => {
+                    if (!currentDeleteId || !currentDeleteType) return;
+                    const url = currentDeleteType === 'jobs' ? `/api/v1/jobs/${currentDeleteId}` : `/api/v1/candidates/${currentDeleteId}`;
+                    try {
+                        const response = await fetch(url, { method: 'DELETE' });
+                        if (response.ok) { window.location.reload(); }
+                        else { alert("Erro ao eliminar o registo."); }
+                    } catch (error) { console.error("Erro:", error); }
+                });
+            }
+        });
+
+        function openDeleteModal(id, type, title = "Confirmar Exclusão") {
+            currentDeleteId = id;
+            currentDeleteType = type;
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+            currentDeleteId = null;
+        }
+
+        async function viewCandidate(id) {
+            const modal = document.getElementById('viewModal');
+            const content = document.getElementById('viewModalContent');
+            modal.classList.remove('hidden');
+            content.innerHTML = '<div class="flex justify-center py-12"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>';
+
+            try {
+                const response = await fetch(`/api/v1/candidates/${id}`);
+                if (!response.ok) throw new Error("Candidato não encontrado");
+                const c = await response.json();
+                const resumeUrl = c.resume_path.startsWith('/') ? c.resume_path : `/${c.resume_path}`;
+
+                content.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex justify-between items-start border-b border-slate-100 pb-5">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Candidato</p>
+                            <h2 class="text-2xl font-bold text-slate-900">\ ${c.first_name} \ ${c.last_name}</h2>
+                        </div>
+                        <a href="\ ${resumeUrl}" target="_blank" class="flex items-center gap-2 px-3 py-2 bg-slate-50 text-slate-600 border border-slate-200 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 group">
+                            <i class="ph ph-file-pdf text-xl"></i>
+                            <span class="text-xs font-bold uppercase tracking-tight">Ver CV</span>
+                        </a>
+                    </div>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">E-mail</p>
+                            <p class="text-sm text-slate-700 font-medium truncate">\ ${c.email}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Telefone</p>
+                            <p class="text-sm text-slate-700 font-medium">\ ${c.phone || 'Não informado'}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Formação Acadêmica</p>
+                        <p class="text-sm text-slate-700 leading-relaxed">\ ${c.education}</p>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-2">Objetivo Profissional</p>
+                        <p class="text-sm text-slate-600 italic leading-relaxed">"\ ${c.career_objective}"</p>
+                    </div>
+                </div>`;
+            } catch (error) {
+                content.innerHTML = '<div class="text-center text-red-500 py-8">Erro ao carregar dados.</div>';
+            }
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.add('hidden');
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

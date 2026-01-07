@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-slate-800">Painel de Controle</h1>
+        <p class="text-slate-500">Indicadores gerais do Banco de Talentos.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <div class="h-10 w-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+                    <i class="ph ph-users text-2xl"></i>
+                </div>
+                <span id="growthPercentage" class="text-xs font-medium px-2 py-1 rounded-full">--%</span>
+            </div>
+            <h3 class="text-slate-500 text-sm font-medium">Total de Candidatos</h3>
+            <p class="text-2xl font-bold text-slate-800">{{ metrics.total_candidates }}</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <div class="h-10 w-10 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center">
+                    <i class="ph ph-briefcase text-2xl"></i>
+                </div>
+            </div>
+            <h3 class="text-slate-500 text-sm font-medium">Vagas Ativas</h3>
+            <p class="text-2xl font-bold text-slate-800">{{ metrics.jobs_open }}</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <div class="h-10 w-10 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center">
+                    <i class="ph ph-magnifying-glass text-2xl"></i>
+                </div>
+            </div>
+            <h3 class="text-slate-500 text-sm font-medium">Em Análise</h3>
+            <p class="text-2xl font-bold text-slate-800">{{ metrics.jobs_analysis }}</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <div class="h-10 w-10 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center">
+                    <i class="ph ph-check-circle text-2xl"></i>
+                </div>
+            </div>
+            <h3 class="text-slate-500 text-sm font-medium">Vagas Encerradas</h3>
+            <p class="text-2xl font-bold text-slate-800">{{ metrics.jobs_closed }}</p>
+        </div>
+    </div>
+
+    <div class="flex flex-col items-center justify-center w-full">
+        <div class="w-full max-w-xl bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-slate-800 mb-6 flex items-center">
+                <i class="ph ph-chart-pie mr-2 text-blue-600"></i> Distribuição de Vagas
+            </h3>
+            <div class="h-64 flex justify-cente'r">
+                <canvas id="jobsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-slate-800 mb-6 flex items-center">
+                <i class="ph ph-trend-up mr-2 text-green-600"></i> Candidatos por Mês
+            </h3>
+            <div class="h-64">
+                <canvas id="growthChart"></canvas>
+            </div>
+        </div> -->
+
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Dados para o cálculo (usando os mesmos do seu gráfico)
+        const dadosMensais = [12, 19, 15, 25, 22, parseInt('{{ metrics.total_candidates }}')];
+
+        const mesAtual = dadosMensais[dadosMensais.length - 1];
+        const mesAnterior = dadosMensais[dadosMensais.length - 2];
+
+        // Cálculo da variação percentual: ((Atual - Anterior) / Anterior) * 100
+        const variacao = ((mesAtual - mesAnterior) / mesAnterior) * 100;
+        const badge = document.getElementById('growthPercentage');
+
+        if (badge) {
+            const valorFormatado = variacao.toFixed(0); // Arredonda
+
+            if (variacao > 0) {
+                badge.innerText = `+${valorFormatado}%`;
+                badge.classList.add('text-green-600', 'bg-green-50');
+            } else if (variacao < 0) {
+                badge.innerText = `${valorFormatado}%`;
+                badge.classList.add('text-red-600', 'bg-red-50');
+            } else {
+                badge.innerText = `0%`;
+                badge.classList.add('text-slate-600', 'bg-slate-50');
+            }
+        }
+    });
+
+    // Configuração Gráfico de Pizza (Status Vagas)
+    const ctxJobs = document.getElementById('jobsChart').getContext('2d');
+    new Chart(ctxJobs, {
+        type: 'doughnut',
+        data: {
+            labels: ['Abertas', 'Em Análise', 'Fechadas'],
+            datasets: [{
+                data: ['{{ metrics.jobs_open }}', '{{ metrics.jobs_analysis }}', '{{ metrics.jobs_closed }}'],
+                backgroundColor: ['#3b82f6', '#f59e0b', '#94a3b8'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            },
+            cutout: '70%'
+        }
+    });
+
+    // Configuração Gráfico de Linha (Crescimento)
+    const ctxGrowth = document.getElementById('growthChart').getContext('2d');
+    new Chart(ctxGrowth, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+            datasets: [{
+                label: 'Novos Candidatos',
+                data: [12, 19, 15, 25, 22, '{{ metrics.total_candidates }}'],
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { display: false } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+
+</script>
+{% endblock %}

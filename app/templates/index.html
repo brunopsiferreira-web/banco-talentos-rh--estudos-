@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Banco de Talentos</h1>
+            <p class="text-slate-500 mt-1">Gerencie os currículos recebidos recentemente.</p>
+        </div>
+        <div class="mt-4 md:mt-0">
+            <a href="/candidates/new"
+                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition shadow-sm shadow-blue-200">
+                <i class="ph ph-plus mr-2 font-bold"></i> Novo Candidato
+            </a>
+        </div>
+    </div>
+
+    {% if candidates %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for c in candidates %}
+        <div
+            class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-200 p-6 flex flex-col group candidate-card">
+
+            <div class="flex items-start justify-between mb-4">
+                <div class="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-xl">
+                    👤
+                </div>
+                <div class="relative">
+                    <button onclick="openDeleteModal('{{ c.id }}', 'candidates', 'Remover Candidato')"
+                        class="text-slate-400 hover:text-red-500 transition">
+                        <i class="ph ph-trash text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-bold text-slate-800 mb-1">{{ c.first_name }} {{ c.last_name }}</h3>
+            <p class="text-sm text-slate-500 mb-4 line-clamp-2 h-10">{{ c.career_objective }}</p>
+
+            <div class="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
+                <div class="flex gap-2">
+                    <button onclick="viewCandidate('{{ c.id }}')"
+                        class="inline-flex items-center px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg hover:bg-blue-600 hover:text-white transition-colors group">
+                        <i class="ph ph-eye mr-1.5 text-sm"></i> Detalhes
+                    </button>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-20 bg-white rounded-xl border border-dashed border-slate-300">
+        <div class="inline-flex items-center justify-center h-16 w-16 rounded-full bg-slate-50 mb-4">
+            <i class="ph ph-users text-3xl text-slate-400"></i>
+        </div>
+        <h3 class="text-lg font-medium text-slate-900">Nenhum candidato ainda</h3>
+        <p class="text-slate-500 mt-1 mb-6">Comece adicionando novos talentos ao banco.</p>
+        <a href="/candidates/new" class="text-blue-600 font-medium hover:underline">Cadastrar primeiro candidato</a>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function deleteCandidate(event) {
+        event.preventDefault();
+
+        // Pega o botão clicado
+        const button = event.currentTarget;
+        const candidateId = button.getAttribute('data-id');
+
+        if (confirm("Tem certeza que deseja deletar este candidato?")) {
+            try {
+                const response = await fetch(`/api/v1/candidates/${candidateId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    // Remove o card visualmente com uma animação suave
+                    const card = button.closest('.candidate-card');
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.9)';
+                    setTimeout(() => card.remove(), 200);
+
+                    // Opcional: Feedback visual menos intrusivo que alert
+                    // createToast('Candidato removido', 'success');
+                } else {
+                    const errorData = await response.json();
+                    alert("Erro: " + errorData.detail);
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Erro de conexão ao tentar deletar.");
+            }
+        }
+    }
+
+    async function viewCandidate(id) {
+        const modal = document.getElementById('viewModal');
+        const content = document.getElementById('viewModalContent');
+
+        // Abre o modal e mostra o loading
+        modal.classList.remove('hidden');
+        content.innerHTML = '<div class="flex justify-center py-12"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>';
+
+        try {
+            const response = await fetch(`/api/v1/candidates/${id}`);
+            if (!response.ok) throw new Error("Candidato não encontrado");
+
+            const c = await response.json();
+
+            // Monta o visual detalhado
+            content.innerHTML =
+                <div class="space-y-6">
+                    <div class="border-b border-slate-50 pb-4">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Nome Completo</p>
+                        <p class="text-xl font-bold text-slate-900">${c.first_name} ${c.last_name}</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">E-mail</p>
+                            <p class="text-sm text-slate-700 truncate">${c.email}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Telefone</p>
+                            <p class="text-sm text-slate-700">${c.phone || 'Não informado'}</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Formação</p>
+                        <p class="text-sm text-slate-700 bg-blue-50 p-2 rounded-lg border border-blue-100">${c.education}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Objetivo Profissional</p>
+                        <p class="text-sm text-slate-600 italic leading-relaxed">"${c.career_objective}"</p>
+                    </div>
+                </div>
+                ;
+        } catch (error) {
+            content.innerHTML = `<div class="text-center text-red-500 py-8">${error.message}</div>`;
+        }
+    }
+
+    function closeViewModal() {
+        document.getElementById('viewModal').classList.add('hidden');
+    }
+</script>
+{% endblock %}

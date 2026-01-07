@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Vagas Disponíveis</h1>
+            <p class="text-slate-500 mt-1">Gerencie as oportunidades em aberto.</p>
+        </div>
+        <div class="mt-4 md:mt-0">
+            <a href="/jobs/new"
+                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition shadow-sm">
+                <i class="ph ph-plus-circle mr-2 text-lg"></i> Nova Vaga
+            </a>
+        </div>
+    </div>
+
+    {% if jobs %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for job in jobs %}
+        <div
+            class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition p-6 flex flex-col h-full">
+
+            <div class="flex justify-between items-start mb-4">
+                <div class="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <i class="ph ph-briefcase text-xl"></i>
+                </div>
+                {% if job.status == "aberta" %}
+                <span
+                    class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full border border-green-200">Aberta</span>
+                {% elif job.status == "em análise" %}
+                <span
+                    class="px-2 py-1 text-xs font-semibold bg-yellow-100 text-yellow-700 rounded-full border border-yellow-200">Em
+                    Análise</span>
+                {% else %}
+                <span
+                    class="px-2 py-1 text-xs font-semibold bg-slate-100 text-slate-600 rounded-full border border-slate-200">Fechada</span>
+                {% endif %}
+            </div>
+
+            <h3 class="text-lg font-bold text-slate-800 mb-2">{{ job.title }}</h3>
+            <p class="text-slate-500 text-sm mb-4 line-clamp-3 flex-grow">{{ job.description }}</p>
+
+            <div class="mt-auto pt-4 border-t border-slate-100 flex items-center gap-2">
+                <a href="/jobs/{{ job.id }}"
+                    class="flex-1 inline-flex justify-center items-center px-4 py-2 bg-white border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition shadow-sm text-sm">
+                    Ver Detalhes & Matches
+                </a>
+
+                <div class="flex items-center gap-2">
+                    <a href="/jobs/{{ job.id }}/edit"
+                        class="flex items-center justify-center h-10 w-10 rounded-lg border border-slate-200 text-slate-400 hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all duration-200"
+                        title="Editar Vaga">
+                        <i class="ph ph-pencil-simple text-xl"></i>
+                    </a>
+
+                    <button onclick="openDeleteModal('{{ job.id }}', 'jobs', 'Eliminar Vaga')"
+                        class="flex items-center justify-center h-10 w-10 rounded-lg border border-slate-200 text-slate-400 hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all duration-200">
+                        <i class="ph ph-trash text-xl"></i>
+                    </button>
+
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-20 bg-white rounded-xl border border-dashed border-slate-300">
+        <div class="inline-flex items-center justify-center h-16 w-16 rounded-full bg-slate-50 mb-4">
+            <i class="ph ph-briefcase text-3xl text-slate-400"></i>
+        </div>
+        <h3 class="text-lg font-medium text-slate-900">Nenhuma vaga encontrada</h3>
+        <p class="text-slate-500 mt-1 mb-6">Crie oportunidades para começar a buscar talentos.</p>
+        <a href="/jobs/new" class="text-blue-600 font-medium hover:underline">Criar primeira vaga</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

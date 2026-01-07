@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+
+    <div class="mb-8">
+        <a href="/jobs" class="text-sm text-slate-500 hover:text-blue-600 mb-2 inline-flex items-center">
+            <i class="ph ph-arrow-left mr-1"></i> Voltar para vagas
+        </a>
+        <h1 class="text-2xl font-bold text-slate-800">Nova Vaga</h1>
+        <p class="text-slate-500">Descreva os requisitos para encontrar o match perfeito.</p>
+    </div>
+
+    <div id="alert" class="hidden mb-6 p-4 rounded-lg"></div>
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
+        <form id="jobForm" class="space-y-6">
+
+            <div>
+                <label for="title" class="block text-sm font-medium text-slate-700 mb-1">Título da Vaga *</label>
+                <input type="text" id="title" name="title" required placeholder="Ex: Desenvolvedor Backend Python"
+                    class="w-full rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm transition">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="status" class="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                    <select id="status" name="status"
+                        class="w-full rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm transition bg-white">
+                        <option value="aberta">🟢 Aberta</option>
+                        <option value="em análise">🟡 Em análise</option>
+                        <option value="fechada">🔴 Fechada</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label for="description" class="block text-sm font-medium text-slate-700 mb-1">Descrição da Vaga
+                    *</label>
+                <textarea id="description" name="description" required rows="4"
+                    placeholder="O que o profissional irá fazer?"
+                    class="w-full rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm transition"></textarea>
+            </div>
+
+            <div>
+                <label for="requirements" class="block text-sm font-medium text-slate-700 mb-1">Requisitos
+                    Técnicos</label>
+                <textarea id="requirements" name="requirements" rows="3"
+                    placeholder="Ex: Python, SQL, Docker (separados por vírgula)"
+                    class="w-full rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm transition"></textarea>
+                <p class="text-xs text-slate-400 mt-1">Isso será usado para calcular o match com os candidatos.</p>
+            </div>
+
+            <div class="pt-4 flex justify-end gap-3 border-t border-slate-100">
+                <button type="submit"
+                    class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition shadow-sm w-full md:w-auto">
+                    Criar Vaga
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('jobForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const alertDiv = document.getElementById('alert');
+        const formData = new FormData(this);
+        const jobData = {
+            title: formData.get('title'),
+            description: formData.get('description'),
+            requirements: formData.get('requirements') || undefined,
+            status: formData.get('status')
+        };
+
+        try {
+            const response = await fetch('/api/v1/jobs/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(jobData)
+            });
+
+            if (response.ok) {
+                // Sucesso com estilo Tailwind
+                alertDiv.className = 'mb-6 p-4 rounded-lg bg-green-50 text-green-800 border border-green-200 flex items-center';
+                alertDiv.innerHTML = '<i class="ph ph-check-circle text-xl mr-2"></i> Vaga criada com sucesso! Redirecionando...';
+                alertDiv.classList.remove('hidden');
+                this.reset();
+                setTimeout(() => window.location.href = '/jobs', 1500);
+            } else {
+                const result = await response.json();
+                alertDiv.className = 'mb-6 p-4 rounded-lg bg-red-50 text-red-800 border border-red-200';
+                alertDiv.textContent = `Erro: ${result.detail || 'Falha ao criar'}`;
+                alertDiv.classList.remove('hidden');
+            }
+        } catch (err) {
+            alertDiv.className = 'mb-6 p-4 rounded-lg bg-red-50 text-red-800 border border-red-200';
+            alertDiv.textContent = `Erro de conexão: ${err.message}`;
+            alertDiv.classList.remove('hidden');
+        }
+    });
+</script>
+{% endblock %}
